@@ -25,13 +25,29 @@ namespace SimpleRPG
 
         private Direction direction = Direction.Right;
         private float speed = 200.0F;
+        public int health = 3;
+        private int lives = 3;
+        public bool isAttack = false, isShield = false;
         enum Direction { Left, Right, Up, Down };
         public Player(Game game) : base(game)
         {
             celAnimationManager = (ICelAnimationManager)game.Services.GetService(typeof(ICelAnimationManager));
             inputHandler = (IInputHandler)game.Services.GetService(typeof(IInputHandler));
         }
-
+        public void incHealth()
+        {
+            if (lives < 3)
+            {
+                lives++;
+            }
+        }
+        public void decHealth()
+        {
+            if (lives > 0)
+            {
+                lives--;
+            }
+        }
         public override void Initialize()
         {
             base.Initialize();
@@ -55,6 +71,11 @@ namespace SimpleRPG
             celAnimationManager.AddAnimation("orc_slash_right", "orc_slash_right", celCount, 10);
             celAnimationManager.AddAnimation("orc_slash_up", "orc_slash_up", celCount, 10);
             celAnimationManager.AddAnimation("orc_slash_down", "orc_slash_down", celCount, 10);
+            celCount = new CelCount(8, 1);
+            celAnimationManager.AddAnimation("orc_shield_left", "orc_shield_left", celCount, 10);
+            celAnimationManager.AddAnimation("orc_shield_right", "orc_shield_right", celCount, 10);
+            celAnimationManager.AddAnimation("orc_shield_up", "orc_shield_up", celCount, 10);
+            celAnimationManager.AddAnimation("orc_shield_down", "orc_shield_down", celCount, 10);
         }
 
         public override void Update(GameTime gameTime)
@@ -119,8 +140,26 @@ namespace SimpleRPG
                     default:
                         break;
                 }
-
-
+            }
+            if (inputHandler.KeyboardHandler.IsKeyDown(Keys.LeftShift))
+            {
+                switch (direction)
+                {
+                    case Direction.Down:
+                        celAnimationManager.ResumeAnimation("orc_shield_down");
+                        break;
+                    case Direction.Up:
+                        celAnimationManager.ResumeAnimation("orc_shield_up");
+                        break;
+                    case Direction.Left:
+                        celAnimationManager.ResumeAnimation("orc_shield_left");
+                        break;
+                    case Direction.Right:
+                        celAnimationManager.ResumeAnimation("orc_shield_right");
+                        break;
+                    default:
+                        break;
+                }
             }
 
 
@@ -133,10 +172,18 @@ namespace SimpleRPG
 
             base.Update(gameTime);
         }
-
+        public bool Arrack()
+        {
+            return inputHandler.KeyboardHandler.IsKeyDown(Keys.Space);
+        }
+        public bool Shield()
+        {
+            return inputHandler.KeyboardHandler.IsKeyDown(Keys.LeftShift);
+        }
         public override void Draw(GameTime gameTime)
         {
             string action = inputHandler.KeyboardHandler.IsKeyDown(Keys.Space) ? "orc_slash_" : "orc_";
+            action = inputHandler.KeyboardHandler.IsKeyDown(Keys.LeftShift) ? "orc_shield_" : action;
             Vector2 pos = inputHandler.KeyboardHandler.IsKeyDown(Keys.Space) ? position - new Vector2(64, 64) : position;
             spriteBatch.Begin();
             switch (direction)
@@ -158,7 +205,7 @@ namespace SimpleRPG
 
             }
             spriteBatch.End();
-            
+
             //  base.Draw(gameTime);
         }
     }

@@ -71,6 +71,10 @@
     <None Include="Content\Player\orc_down.xnb" />
     <None Include="Content\Player\orc_left.xnb" />
     <None Include="Content\Player\orc_right.xnb" />
+    <None Include="Content\Player\orc_shield_down.xnb" />
+    <None Include="Content\Player\orc_shield_left.xnb" />
+    <None Include="Content\Player\orc_shield_right.xnb" />
+    <None Include="Content\Player\orc_shield_up.xnb" />
     <None Include="Content\Player\orc_slash_down.xnb" />
     <None Include="Content\Player\orc_slash_left.xnb" />
     <None Include="Content\Player\orc_slash_right.xnb" />
