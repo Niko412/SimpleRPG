@@ -2,10 +2,6 @@
 using Microsoft.Xna.Framework.Graphics;
 using Microsoft.Xna.Framework.Input;
 using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 using XELibrary;
 
 namespace SimpleRPG
@@ -15,6 +11,7 @@ namespace SimpleRPG
         ICelAnimationManager celAnimationManager;
         IInputHandler inputHandler;
         SpriteBatch spriteBatch;
+        public DateTime atkTime = new DateTime();
         private Vector2 position = new Vector2(100, 100);
         public Vector2 Position
         {
@@ -25,9 +22,10 @@ namespace SimpleRPG
 
         private Direction direction = Direction.Right;
         private float speed = 200.0F;
-        public int health = 3;
-        private int lives = 3;
-        public bool isAttack = false, isShield = false;
+        private int lives = 300;
+        private bool isAttacking = false, isDead = false;
+        private bool canMove = true;
+
         enum Direction { Left, Right, Up, Down };
         public Player(Game game) : base(game)
         {
@@ -47,6 +45,22 @@ namespace SimpleRPG
             {
                 lives--;
             }
+            if (lives == 0)
+            {
+                isDead = true;
+            }
+        }
+        public int GetLives()
+        {
+            return lives;
+        }
+        public bool IsDead()
+        {
+            return isDead;
+        }
+        public bool IsAttacking()
+        {
+            return isAttacking;
         }
         public override void Initialize()
         {
@@ -71,97 +85,121 @@ namespace SimpleRPG
             celAnimationManager.AddAnimation("orc_slash_right", "orc_slash_right", celCount, 10);
             celAnimationManager.AddAnimation("orc_slash_up", "orc_slash_up", celCount, 10);
             celAnimationManager.AddAnimation("orc_slash_down", "orc_slash_down", celCount, 10);
+            celAnimationManager.AddAnimation("orc_dead", "orc_dead", celCount, 10);
             celCount = new CelCount(8, 1);
             celAnimationManager.AddAnimation("orc_shield_left", "orc_shield_left", celCount, 10);
             celAnimationManager.AddAnimation("orc_shield_right", "orc_shield_right", celCount, 10);
             celAnimationManager.AddAnimation("orc_shield_up", "orc_shield_up", celCount, 10);
             celAnimationManager.AddAnimation("orc_shield_down", "orc_shield_down", celCount, 10);
+            celCount = new CelCount(1, 1);
+            celAnimationManager.AddAnimation("heart", "..//Misc//heart", celCount, 10);
+            celAnimationManager.AddAnimation("heart_broken", "..//Misc//heart_broken", celCount, 10);
+            celAnimationManager.AddAnimation("orc_grave", "orc_grave", celCount, 10);
+
+
+
+        }
+
+        internal void SetEnemies(int enemiesNumber)
+        {
+            if (enemiesNumber <= 0)
+                canMove = false;
         }
 
         public override void Update(GameTime gameTime)
         {
-            if (inputHandler.KeyboardHandler.IsKeyDown(Keys.Right))
+            if (!isDead)
             {
-                celAnimationManager.ResumeAnimation("orc_right");
-                direction = Direction.Right;
-                position.X += (speed * (float)gameTime.ElapsedGameTime.TotalSeconds);
-            }
-            else
-            {
-                celAnimationManager.PauseAnimation("orc_right");
-            }
-            if (inputHandler.KeyboardHandler.IsKeyDown(Keys.Left))
-            {
-                celAnimationManager.ResumeAnimation("orc_left");
-                direction = Direction.Left;
-                position.X -= (speed * (float)gameTime.ElapsedGameTime.TotalSeconds);
-            }
-            else
-            {
-                celAnimationManager.PauseAnimation("orc_left");
-            }
-            if (inputHandler.KeyboardHandler.IsKeyDown(Keys.Up))
-            {
-                celAnimationManager.ResumeAnimation("orc_up");
-                direction = Direction.Up;
-                position.Y -= (speed * (float)gameTime.ElapsedGameTime.TotalSeconds);
-            }
-            else
-            {
-                celAnimationManager.PauseAnimation("orc_up");
-            }
-            if (inputHandler.KeyboardHandler.IsKeyDown(Keys.Down))
-            {
-                celAnimationManager.ResumeAnimation("orc_down");
-                direction = Direction.Down;
-                position.Y += (speed * (float)gameTime.ElapsedGameTime.TotalSeconds);
-            }
-            else
-            {
-                celAnimationManager.PauseAnimation("orc_down");
-            }
-
-            if (inputHandler.KeyboardHandler.IsKeyDown(Keys.Space))
-            {
-                switch (direction)
+                if (inputHandler.KeyboardHandler.IsKeyDown(Keys.Right))
                 {
-                    case Direction.Down:
-                        celAnimationManager.ResumeAnimation("orc_slash_down");
-                        break;
-                    case Direction.Up:
-                        celAnimationManager.ResumeAnimation("orc_slash_up");
-                        break;
-                    case Direction.Left:
-                        celAnimationManager.ResumeAnimation("orc_slash_left");
-                        break;
-                    case Direction.Right:
-                        celAnimationManager.ResumeAnimation("orc_slash_right");
-                        break;
-                    default:
-                        break;
+                    celAnimationManager.ResumeAnimation("orc_right");
+                    direction = Direction.Right;
+
+                    position.X += (speed * (float)gameTime.ElapsedGameTime.TotalSeconds);
+                }
+                else
+                {
+                    celAnimationManager.PauseAnimation("orc_right");
+                }
+                if (inputHandler.KeyboardHandler.IsKeyDown(Keys.Left))
+                {
+                    celAnimationManager.ResumeAnimation("orc_left");
+                    direction = Direction.Left;
+                    position.X -= (speed * (float)gameTime.ElapsedGameTime.TotalSeconds);
+                }
+                else
+                {
+                    celAnimationManager.PauseAnimation("orc_left");
+                }
+                if (inputHandler.KeyboardHandler.IsKeyDown(Keys.Up))
+                {
+                    celAnimationManager.ResumeAnimation("orc_up");
+                    direction = Direction.Up;
+                    position.Y -= (speed * (float)gameTime.ElapsedGameTime.TotalSeconds);
+                }
+                else
+                {
+                    celAnimationManager.PauseAnimation("orc_up");
+                }
+                if (inputHandler.KeyboardHandler.IsKeyDown(Keys.Down))
+                {
+                    celAnimationManager.ResumeAnimation("orc_down");
+                    direction = Direction.Down;
+                    position.Y += (speed * (float)gameTime.ElapsedGameTime.TotalSeconds);
+                }
+                else
+                {
+                    celAnimationManager.PauseAnimation("orc_down");
+                }
+
+                if (inputHandler.KeyboardHandler.IsKeyDown(Keys.Space))
+                {
+                    atkTime = DateTime.Now;
+                    isAttacking = true;
+                    switch (direction)
+                    {
+                        case Direction.Down:
+                            celAnimationManager.ResumeAnimation("orc_slash_down");
+                            break;
+                        case Direction.Up:
+                            celAnimationManager.ResumeAnimation("orc_slash_up");
+                            break;
+                        case Direction.Left:
+                            celAnimationManager.ResumeAnimation("orc_slash_left");
+                            break;
+                        case Direction.Right:
+                            celAnimationManager.ResumeAnimation("orc_slash_right");
+                            break;
+                        default:
+                            break;
+                    }
+                }
+                else
+                {
+                    atkTime = new DateTime();
+                    isAttacking = false;
+                }
+                if (inputHandler.KeyboardHandler.IsKeyDown(Keys.LeftShift))
+                {
+                    switch (direction)
+                    {
+                        case Direction.Down:
+                            celAnimationManager.ResumeAnimation("orc_shield_down");
+                            break;
+                        case Direction.Up:
+                            celAnimationManager.ResumeAnimation("orc_shield_up");
+                            break;
+                        case Direction.Left:
+                            celAnimationManager.ResumeAnimation("orc_shield_left");
+                            break;
+                        case Direction.Right:
+                            celAnimationManager.ResumeAnimation("orc_shield_right");
+                            break;
+                        default:
+                            break;
+                    }
                 }
             }
-            if (inputHandler.KeyboardHandler.IsKeyDown(Keys.LeftShift))
-            {
-                switch (direction)
-                {
-                    case Direction.Down:
-                        celAnimationManager.ResumeAnimation("orc_shield_down");
-                        break;
-                    case Direction.Up:
-                        celAnimationManager.ResumeAnimation("orc_shield_up");
-                        break;
-                    case Direction.Left:
-                        celAnimationManager.ResumeAnimation("orc_shield_left");
-                        break;
-                    case Direction.Right:
-                        celAnimationManager.ResumeAnimation("orc_shield_right");
-                        break;
-                    default:
-                        break;
-                }
-            }
-
 
             int celWidth = celAnimationManager.GetAnimationFrameWidth("orc_left");
 
@@ -172,9 +210,15 @@ namespace SimpleRPG
 
             base.Update(gameTime);
         }
-        public bool Arrack()
+        public DateTime Arrack()
         {
-            return inputHandler.KeyboardHandler.IsKeyDown(Keys.Space);
+
+            if (inputHandler.KeyboardHandler.IsKeyDown(Keys.Space))
+            {
+                DateTime now = DateTime.Now;
+                return now;
+            }
+            else return new DateTime();
         }
         public bool Shield()
         {
@@ -182,31 +226,50 @@ namespace SimpleRPG
         }
         public override void Draw(GameTime gameTime)
         {
+
             string action = inputHandler.KeyboardHandler.IsKeyDown(Keys.Space) ? "orc_slash_" : "orc_";
             action = inputHandler.KeyboardHandler.IsKeyDown(Keys.LeftShift) ? "orc_shield_" : action;
             Vector2 pos = inputHandler.KeyboardHandler.IsKeyDown(Keys.Space) ? position - new Vector2(64, 64) : position;
             spriteBatch.Begin();
-            switch (direction)
+            int i = 0;
+            for (; i < lives; i++)
             {
-                case Direction.Down:
-                    celAnimationManager.Draw(gameTime, action + "down", spriteBatch, pos, SpriteEffects.None);
-                    break;
-                case Direction.Up:
-                    celAnimationManager.Draw(gameTime, action + "up", spriteBatch, pos, SpriteEffects.None);
-                    break;
-                case Direction.Left:
-                    celAnimationManager.Draw(gameTime, action + "left", spriteBatch, pos, SpriteEffects.None);
-                    break;
-                case Direction.Right:
-                    celAnimationManager.Draw(gameTime, action + "right", spriteBatch, pos, SpriteEffects.None);
-                    break;
-                default:
-                    break;
-
+                celAnimationManager.Draw(gameTime, "hart", spriteBatch, new Vector2(100, 100), SpriteEffects.None);
             }
+            for (; i < 3; i++)
+            {
+                celAnimationManager.Draw(gameTime, "hart_broken", spriteBatch, new Vector2(10 + 64 * i, 10), SpriteEffects.None);
+            }
+            if (lives > 0)
+            {
+                switch (direction)
+                {
+                    case Direction.Down:
+                        celAnimationManager.Draw(gameTime, action + "down", spriteBatch, pos, SpriteEffects.None);
+                        break;
+                    case Direction.Up:
+                        celAnimationManager.Draw(gameTime, action + "up", spriteBatch, pos, SpriteEffects.None);
+                        break;
+                    case Direction.Left:
+                        celAnimationManager.Draw(gameTime, action + "left", spriteBatch, pos, SpriteEffects.None);
+                        break;
+                    case Direction.Right:
+                        celAnimationManager.Draw(gameTime, action + "right", spriteBatch, pos, SpriteEffects.None);
+                        break;
+                    default:
+                        break;
+                }
+            }
+            else
+            {
+                if (isDead)
+                {
+                    celAnimationManager.Draw(gameTime, "orc_grave", spriteBatch, pos, SpriteEffects.None);
+                }
+            }
+
             spriteBatch.End();
 
-            //  base.Draw(gameTime);
         }
     }
 }
